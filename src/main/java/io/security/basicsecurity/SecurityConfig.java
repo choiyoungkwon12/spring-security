@@ -1,9 +1,17 @@
 package io.security.basicsecurity;
 
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 
 
 @Configuration
@@ -16,20 +24,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .anyRequest().authenticated();
 
         http
-            .formLogin()
-            /*.loginPage("/loginPage")*/
-            .defaultSuccessUrl("/")
-            .failureUrl("/")
-            .usernameParameter("userId")
-            .passwordParameter("passwd")
-            .successHandler((request, response, authentication) -> {
-                System.out.println("authentication.getName() " + authentication.getName());
-                response.sendRedirect("/");
+            .formLogin();
+
+        http
+            .logout()
+            .logoutUrl("/logout")
+            .logoutSuccessUrl("/login")
+            .addLogoutHandler((request, response, authentication) -> {
+                HttpSession session = request.getSession();
+                session.invalidate();;
             })
-            .failureHandler((request, response, exception) -> {
-                System.out.println(exception.getMessage());
+            .logoutSuccessHandler((request, response, authentication) -> {
                 response.sendRedirect("/login");
             })
-            .permitAll();
+            .deleteCookies("remember-me");
     }
 }
