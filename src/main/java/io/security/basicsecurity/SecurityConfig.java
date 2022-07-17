@@ -35,20 +35,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .formLogin();
 
         http
-            .logout()
-            .logoutUrl("/logout")
-            .logoutSuccessUrl("/login")
-            .addLogoutHandler((request, response, authentication) -> {
-                HttpSession session = request.getSession();
-                session.invalidate();;
-            })
-            .logoutSuccessHandler((request, response, authentication) -> {
-                response.sendRedirect("/login");
-            })
-            .and()
             .rememberMe()
-            .rememberMeParameter("remember")
-            .tokenValiditySeconds(60*60)
             .userDetailsService(userDetailsService);
     }
 }

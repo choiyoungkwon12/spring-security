@@ -60,3 +60,31 @@ http. logout()                   // 로그아웃 처리
   - 로그아웃(쿠키가 존재하면 쿠키 무효화
 
 ![img_3.png](img_3.png)
+
+## RemembermeAuthenticationFilter
+
+![img_4.png](img_4.png)
+
+RemembermeAuthenticationFilter는 브라우저가 종료되어서 세션을 사용하지 못하는 경우, 세션 만료가 된 경우 세션을 활성화 되지 않아서 인증객체를 securirt context에서 찾지 못하는 경우 사용자의 인증을 유지하기 위해서 RemembermeAuthenticationFilter가 인증을 시도하고 사용자의 인증을 받게 하여 서버의 인증을 유지해서 접근을 가능하도록 한다.
+
+조건 1. Authentication 객체가 null이 아니어야 함.
+
+조건 2. 사용자가 최초의 form인증을 받을 당시 remember-me 기능을 사용자가 활성화하여 remeberme 쿠키를 서버로부터 발급 받은 경우여야한다.
+
+흐름.
+
+1. 사용자는 세션이 만료된 상태고, 최초 로그인시 remember-me 기능 활성화함.
+2. 그러면 RemembermeAuthenticationFilter가 동작함.
+3. RememberMeServices는 인터페이스로 TokenBasedRememberMeservices, PersistentTokenBasedRememberMeServices가 구현체이다.
+- TokenBasedRememberMeservices - 메모리에서 저장한 토큰과 사용자가 가지고 있는 토큰을 비교하는 방식 (기본적으로 14일 토큰 만료시간을 가짐)
+- PersistentTokenBasedRememberMeServices - 토큰을 디비에 저장하고 클라이언트의 토큰과 비교하는 방식
+4token cookie 추출(remember-me)
+- 없으면 다음 필터 이동
+- 있으면 토큰 decode
+  - 정상아닐경우 exception
+5. 토큰값이 정상일 경우 서버의 토큰과 일치하는지 판단.
+- 없으면 exception
+6. 토큰에 포함된 정보중 user 계정이 존재하는지 판단.
+- 없으면 exception
+7. 있으면 새로운 authentication 객체 생성
+8. AuthenticationManager에게 인증객체 전달 후 인증처리 완료
