@@ -49,3 +49,14 @@ http. logout()                   // 로그아웃 처리
 - LogoutFilter가 가지고 있는 핸들러중 SecurityContextLogoutHandler 클래스가 세션무효화, 쿠키삭제, SecurityContextHolder.clearContext()로 securityContext 삭제를 합니다.
 - 원칙적으로는 로그아웃 시 post여야 하지만 SecurityContextLogoutHandler 을 이용해서 get방식으로 로그아웃 처리가능.
 - 이렇게 LogoutFilter의 수행이 정상적으로 종료가 되면 SimpleUrlLogoutSuccessHandler를 호출해서 로그인페이지로 이동하도록 한다.
+
+# 인증 API - Remember Me 인증
+
+1. 세션이 만료되고 브라우저가 종료된 후에도 어플리케이션이 사용자를 기억하는 기능
+2. Remember-me 쿠키에 대한 http 요청을 확인 후 토큰 기반 인증을 사용해 유효성을 검사하고 토큰이 검즈오디면 사용자는 로그인된다.
+3. 사용자 라이프 사이클
+  - 인증 성공 (Remember-Me 쿠키 설정)
+  - 인증 실패 (쿠키가 존재하면 쿠키 무효화)
+  - 로그아웃(쿠키가 존재하면 쿠키 무효화
+
+![img_3.png](img_3.png)
