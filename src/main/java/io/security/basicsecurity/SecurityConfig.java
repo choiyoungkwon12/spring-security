@@ -32,11 +32,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .anyRequest().authenticated();
 
         http
-            .formLogin();
-
-        http
+            .formLogin()
+        .and()
             .sessionManagement()
-            .sessionFixation()
-            .changeSessionId();
+            .maximumSessions(1) // 최대 세션 갯수 1개
+            .maxSessionsPreventsLogin(true); // 최대 세션 허용갯수 초과 시 인증 실패전략 사용
     }
 }

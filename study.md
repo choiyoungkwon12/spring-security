@@ -158,3 +158,49 @@ none은 공격자에게 무방비 상태가 됨.
 세션 생성 정책
 
 jwt와 같이 세션을 전혀 사용하지 않을때는 stateless 방식으로 정책을 설정 할 수 있다.
+
+# 세션 제어 필터 : SessionManagementFilter, ConcurrentSessionFilter
+
+![img_1.png](image/img_11.png)
+
+# 세션 제어 필터 : SessionManagementFilter, ConcurrentSessionFilter
+
+![img_1.png](image/img_12.png)
+
+ConcurrentSessionFilter는 SessionManagementFilter와 연계하여 동시적 세션 제어를 한다.
+
+![img_1.png](image/img_13.png)
+
+매 요청 마다 session.isExpired == true로 세션 만료 여부 체크한다.
+
+![img_1.png](image/img_14.png)
+
+1. 사용자가 이미 세션을 가지고 있는 계정으로 인증했는데 최대 세션 허용갯수가 초과된 경우 세션 제어 정책에 따라 제어를 하게되는데(sessionManagementFilter) 여기서는 이전 사용자 세션만료 정책에 대한 그림임.
+2. 새로운 사용자가 인증을 하면 session.expireNow()로 이전 사용자의 세션이 만료가 되고 이전 사용자가 만약 다시 한번 요청을 보내서 서버에 접근을 한다면 세션이 만료되었는지 확인(ConcurrentSessionFilter) (session.isExpired) 후 오류 페이지를 응답하고 이전 사용자가 가지고 있는 세션 만료시킨다.
+
+
+**인증부터 각각의 필터의 전반적인 처리과정 ( 최대 세션 허용갯수 1개 가정)**
+
+![img_1.png](image/img_15.png)
+
+사용자1이 로그인 시도.
+
+- usernamePasswordAuthenticationFilter가 받는데 해당 필터는 가장 먼저 ConcurrentSessionControlAuthenticationStrategy(동시적 세션 제어함)를 호출하게 된다.
+  - 해당 계정으로 인증한 세션의 갯수가 몇개인지 확인
+- 두번째는 ChangeSessionIdAuthenticationStrategy가 세션 고정 보호를 하게된다.(session.changeSessionId())
+- 세번째는 RegisterSessionAuthenticationStrategy를 호출해서 사용자의 세션을 등록하고 저장하는 역할을 한다. (세션정보등록하고 session 갯수 +1 됨)
+
+이후 동일한 계정으로 사용자2가 로그인 시도
+
+- 하지만 최대 허용 갯수는 1개라서 ConcurrentSessionControlAuthenticationStrategy에서 최대 허용갯수가 넘어서 **로그인 실패(인증 실패 전략의 경우 SessionAuthenticationException) 또는 session.expireNow() (이전 사용자 세션 만료 전략인 경우)**
+
+이 상태에서 사용자 1이 서버에 접근 시
+
+- ConcurrentSessionFilter가 매 요청마다 세션 만료 여부를 체크 → session.isExpire() true면 Logout처리 및 응답하게 된다.
+
+사용자가 인증 할 때 SessionManagementFilter가 가지고 있는 각각의 필터를 활용해서 세션 고정 보호, 동시적 세션 제어, 세션등록을 하는 핵심적인 일을 인증 할 때 하게된다.
+
+그 다음 ConcurrentSessionFilter가 요청마다 세션 만료여부를 판단하고 만료해야한다면 로그아웃하고 세션만료시키는 프로세스를 가지게 된다.
+
+
+
