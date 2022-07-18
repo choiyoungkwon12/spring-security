@@ -35,7 +35,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .formLogin();
 
         http
-            .rememberMe()
-            .userDetailsService(userDetailsService);
+            .sessionManagement()
+            .maximumSessions(1)
+            .maxSessionsPreventsLogin(false); // true : 1개의 계정으로 1명만 로그인 가능. 1명 이후는 로그인 실패 / false(default) : 1개의 계정으로 1명만 로그인 가능하나 이전 사용자 세션 만료
     }
 }
