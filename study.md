@@ -4,7 +4,7 @@
 
 ## UsernamePasswordAuthenticationFilter
 
-![img.png](img.png)
+![img.png](image/img.png)
 
 사용자가 인증을 요청함.
 
@@ -25,7 +25,7 @@
   
 ## 인증 API - Logout
 
-![img_1.png](img_1.png)
+![img_1.png](image/img_1.png)
 
 ```java
 // http.logout() : 로그아웃 기능이 작동함.
@@ -41,7 +41,7 @@ http. logout()                   // 로그아웃 처리
 
 ## LogoutFilter
 
-![img_2.png](img_2.png)
+![img_2.png](image/img_2.png)
 
 사용자가 로그아웃 요청(post)을 하면 LogoutFilter가 받는다.
 - antPathRequestMatcher(/logout)이 url이 매칭 되는지 검사 후 일치하지 않으면 다음 필터로 위임
@@ -59,11 +59,11 @@ http. logout()                   // 로그아웃 처리
   - 인증 실패 (쿠키가 존재하면 쿠키 무효화)
   - 로그아웃(쿠키가 존재하면 쿠키 무효화
 
-![img_3.png](img_3.png)
+![img_3.png](image/img_3.png)
 
 ## RemembermeAuthenticationFilter
 
-![img_4.png](img_4.png)
+![img_4.png](image/img_4.png)
 
 RemembermeAuthenticationFilter는 브라우저가 종료되어서 세션을 사용하지 못하는 경우, 세션 만료가 된 경우 세션을 활성화 되지 않아서 인증객체를 securirt context에서 찾지 못하는 경우 사용자의 인증을 유지하기 위해서 RemembermeAuthenticationFilter가 인증을 시도하고 사용자의 인증을 받게 하여 서버의 인증을 유지해서 접근을 가능하도록 한다.
 
@@ -88,3 +88,22 @@ RemembermeAuthenticationFilter는 브라우저가 종료되어서 세션을 사�
 - 없으면 exception
 7. 있으면 새로운 authentication 객체 생성
 8. AuthenticationManager에게 인증객체 전달 후 인증처리 완료
+
+# AnonymousAuthenticationFilter
+
+![img_5.png](image/img_5.png)
+
+- 일반적으로 익명 사용자는 null로 처리할 수 있는데 AnonymousAuthenticationFilter에서는 null이 아닌 AnonymousAuthenticationToken(익명 사용자 인증 객체)을 만들어서 securityContext안에 저장한다.
+- 요청이 일어나고 필터체인의 순서에 의해 앞에 작업이 처리된 후 AnonymousAuthenticationFilter에서 처리할 차례가 오면 Authentication이 있는지 확인 후 있으면(이미 인증된 사용자) 다음 필터로 넘어가고 없으면 AnonymousAuthenticationToken을 만들어서 저장한다.
+- 그래서 null값으로 구분하는 것인 아닌 isAnonymous(), isAuthentication() 으로 구분해서 사용한다.
+- 인증객체를 생성했더라도 세션에 따로 저장하지 않는다.
+
+AbsctractSecurityInterceptor : 맨 마지막에 인가처리를 하는 보안 필터
+
+- 현재 사용자가 접근하고자 하는 자원에 접근이 가능한지 아닌지 인가 처리를 한다.
+- 해당 처리 과정에서 SecurityContextHolder.getContext().getAuthentication() == null 로 검사 후 null 이면 예외를 발생시킨다.
+- 그래서 스프링 시큐리티는 Authentication을 곳곳에서 확인하는데 여기서도 확인한다.
+- 그래서 익명 사용자도 인증객체를 만들어서 인증된 사용자, 익명 사용자 구분용으로 만든다.
+
+
+
