@@ -150,3 +150,11 @@ migrateSession은 서블리 3.1 이하에서 기본값으로 사용됨.
 changeSessonId와 migrateSession는 이전의 세션 속성이나 정보를 이어서 사용가능하지만 newSession은 불가능하다.
 
 none은 공격자에게 무방비 상태가 됨.
+
+# 세션 정책
+
+![img_1.png](image/img_10.png)
+
+세션 생성 정책
+
+jwt와 같이 세션을 전혀 사용하지 않을때는 stateless 방식으로 정책을 설정 할 수 있다.

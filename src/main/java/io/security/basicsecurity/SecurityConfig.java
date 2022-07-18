@@ -37,6 +37,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http
             .sessionManagement()
             .sessionFixation()
-            .none();
+            .changeSessionId();
     }
 }
