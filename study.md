@@ -125,3 +125,28 @@ AbsctractSecurityInterceptor : 맨 마지막에 인가처리를 하는 보안 �
 ![img_1.png](image/img_6.png)
 
 invalidSessionUrl과 expiredUrl 둘다 사용한 경우 invalidSessionUrl이 더 우선시 되어 적용된다.
+
+
+### 세션 고정 보호
+
+![img_1.png](image/img_8.png)
+
+**세션 고정 공격이란** 공격자가 먼저 서버에 접속해서 session 값을 가진 쿠키를 받고 사용자에게 공격자 쿠리를 사용하도록 합니다.
+
+이후 사용자가 공격자 세션쿠키로 로그인을 시도 후 성공하면 공격자도 같은 세션쿠키를 가지고 있기 때문에 서버에 접근해서 같은 세션을 공유해서 사용자 정보를 탈취할 수 있습니다.
+
+이를 방지하기 위해 스프링 시큐리티에서 사용하는 방법으로 사용자가 공격자가 심어놓은 쿠키로 인증을 하더라도 매번 서버에서 세션과 쿠키를 생성해서 제공한다.
+
+그러면 공격자의 쿠키는 사용자가 인증 성공한 쿠키와 다르므로 공격을 할 수 없게 된다.
+
+## 세션 고정 보호 API
+
+![img_1.png](image/img_9.png)
+
+changeSessonId 는 서블릿 3.1 이후에서 기본값으로 사용됨.
+
+migrateSession은 서블리 3.1 이하에서 기본값으로 사용됨.
+
+changeSessonId와 migrateSession는 이전의 세션 속성이나 정보를 이어서 사용가능하지만 newSession은 불가능하다.
+
+none은 공격자에게 무방비 상태가 됨.
