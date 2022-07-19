@@ -27,7 +27,7 @@
 
 ![img_1.png](image/img_1.png)
 
-```java
+```
 // http.logout() : 로그아웃 기능이 작동함.
 
 http. logout()                   // 로그아웃 처리
@@ -202,5 +202,44 @@ ConcurrentSessionFilter는 SessionManagementFilter와 연계하여 동시적 세
 
 그 다음 ConcurrentSessionFilter가 요청마다 세션 만료여부를 판단하고 만료해야한다면 로그아웃하고 세션만료시키는 프로세스를 가지게 된다.
 
+# 인가 API - 권한 설정 및 표현식
+
+### 권한 설정
+
+- 선언적 방식
+  - URL 방식
+    - http.antMatchers(”/users/**”).hasRole(”USER”)
+- Mthod 방식
+
+```  
+  @PreAuthorize(”HasRole(’USER’)”)
+  public void user() {…}
+```
+
+
+- 동적 방식 - DB 연동
+  - URL 방식
+  - Method 방식
+
+![img_1.png](image/img_16.png)
+
+![img_1.png](image/img_17.png)
+
+anonymous()는 Role_anonymous 권한을 가진 사용자만 접근가능하다.
+
+- role_user 권한을 가진 사용자도 anonymous에 접근 불가 (permitall() 필요)
+
+hasRole과 hasAuthority의 차이점은 hasRole은 앞에 prefix인 role없이 user만 파라미터로 사용하고 hasAuthority는 role_user로 사용
+
+기본적으로는 USER, ADMIN, SYS는 각각의 권한을 따로 가지고 있을 뿐이지 USER < ADMIN < SYS 와 같이 더 많은 권한을 가지고 있는 것이 아니다.
+
+- 그래서 role에 따로 각각 적어줘야함.
+- 혹은 이후에 학습할 role hierarchy 설정을 해주면 ADMIN은 USER 권한을 가지고 있는 것이 가능해짐.
+
+실습 코드에서는 코드내에서 유저를 생성해놓고 사용하는 테스트 용도이지만 실제로는 동적으로 유저를 생성하고, 해당 유저의 권한과 정보들을 db에 저장해서 사용한다.
+
+인가 정책도 antMatchers를 하나하나 적는게 아닌 자원에 해당하는 권한 설정들을 그때마다 필요한 권한설정을 실시간 적용이 되야하는데 선언적 방식은 동적으로 처리가 되지 않아서 좋지 않음.
+
+이후 동적으로 인가 처리하는 방식 구현할 예정
 
 
