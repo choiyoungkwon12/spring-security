@@ -243,3 +243,51 @@ hasRole과 hasAuthority의 차이점은 hasRole은 앞에 prefix인 role없이 u
 이후 동적으로 인가 처리하는 방식 구현할 예정
 
 
+# 인증/인가 API - ExceptionTranslationFilter, RequestCacheAwareFilter
+
+![img_1.png](image/img_18.png)
+
+ExceptionTranslationFilter는 크게 두가지 종류의 예외를 처리한다.
+
+1. AuthenticationException
+  - 인증 예외 처리
+    - AuthenticationEntryPoint 호출
+      - 로그인 페이지 이동, 401 오류 코드 전달 등
+    - 인증 예외가 발생하기 전의 요청 정보를 저장
+      - requestCache - 사용자의 이전 요청 정보를 저장하고 이를 꺼내오는 캐시 역할
+        - SavedRequest - 사용자가 요청했던 request 파라미터 값들, 당시 헤더값들 등 저장.
+        - 요청정보가 저장되는 값은 SavedRequest가 되고 해당 객체를 Session에 저장하는 것이 RequestCache가 된다.
+
+2. AccessDeniedException
+  - 인가 예외처리
+    - AccessDeniedHandler에서 예외 처리하도록 제공
+
+
+이 두가지 예외를 발생시키는 필터는 FilterSecurityInterceptor가 발생시킴.
+
+- 스프링 시큐리티가 관리하는 보안 필터 중에서 가장 마지막에 위치한 필터이고 이 앞단에 위치한 필터가 ExceptionTranslationFilter이다.
+
+ExceptionTranslationFilter가 사용자 요청을 받아서 다음 filter로 넘겨 줄 때 try~catch로 filterSecurityInterceptor를 호출한다.
+
+- 그러면 filterSecurityInterceptor에서 발생한 예외는 ExceptionTranslationFilter가 각각 처리
+
+![img_1.png](image/img_19.png)
+
+- 그림에 부연설명을 하면 만약 인증을 받지않은 사용자가 접근을 하면 결국 익명(Anonymous) 사용자가 되어 인가 예외를 발생시켜서 AccessDeniedException이 되지만, 익명 사용자 or Remember-me 인증으로 인증된 사용자의 경우 AccessDeniedHandler가 아닌 인증예외인 AuthenticationException예외로 보냄.
+
+- 인증 예외 발생하면 인증 실패 이후 처리 (SecurityContext null로 만듦) 후 로그인 페이지로 이동 및 사용자의 요청관련 정보 저장(”/user”)
+
+- 만약 사용자가 인증을 받았지만 유저 권한을 가지고 있지만 어드민 권한이 필요한 자원에 접근하려고 할 때 인가 예외가 발생함.
+  - 그러면 AccessDeniedException이 발생하고 AccessDeniedHandler에서 처리하도록 함.
+  - 보통은 AccessDenined 페이지를 띄우도록 함.(사용자의 권한 필요하다는 메시지를 주는 페이지)
+
+  ![img_1.png](image/img_20.png)
+
+
+
+
+### RequestCacheAwareFilter
+
+RequestCacheAwareFilter는 인증 예외시 원래 가고자 했던 요청 정보를 SavedRequest에 담게 되는데 이 객체가 존재하는지 확인하는 필터이다.
+
+null이 아닌경우 다음 필터 호출 시 이전에 저장된 SavedRequest를 파라미터 값으로 사용함.

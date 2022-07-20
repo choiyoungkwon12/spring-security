@@ -4,17 +4,21 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.logout.LogoutHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
+import org.springframework.security.web.savedrequest.RequestCache;
+import org.springframework.security.web.savedrequest.SavedRequest;
 
 
 @Configuration
@@ -32,8 +36,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         // 유저 계정 생성
         // 패스워드는 암호화 할때 특정 알고리즘 방식이 사용됐는지 prefix로 적어야 한다. 그렇지 않으면 null 나옴 (ex. {noop})
         auth.inMemoryAuthentication().withUser("user").password("{noop}1111").roles("USER");
-        auth.inMemoryAuthentication().withUser("sys").password("{noop}1111").roles("USER","SYS");
-        auth.inMemoryAuthentication().withUser("admin").password("{noop}1111").roles("ADMIN","SYS","USER");
+        auth.inMemoryAuthentication().withUser("sys").password("{noop}1111").roles("USER", "SYS");
+        auth.inMemoryAuthentication().withUser("admin").password("{noop}1111").roles("ADMIN", "SYS", "USER");
     }
 
     @Override
@@ -46,6 +50,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
          */
         http
             .authorizeRequests()
+            .antMatchers("/login").permitAll() // 로그인 페이지는 모든 사용자 접근 가능
             .antMatchers("/user").hasRole("USER")
             .antMatchers("/admin/pay").hasRole("ADMIN")
             .antMatchers("/admin/**").access("hasRole('ADMIN') or hasRole('SYS')")
@@ -53,9 +58,35 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http
             .formLogin()
-        .and()
-            .sessionManagement()
-            .maximumSessions(1) // 최대 세션 갯수 1개
-            .maxSessionsPreventsLogin(true); // 최대 세션 허용갯수 초과 시 인증 실패전략 사용
+            .successHandler(new AuthenticationSuccessHandler() {
+                @Override
+                public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+                    Authentication authentication) throws IOException, ServletException {
+                    RequestCache requestCache = new HttpSessionRequestCache();
+                    SavedRequest savedRequest = requestCache.getRequest(request, response);
+                    String redirectUrl = savedRequest.getRedirectUrl();
+                    response.sendRedirect(redirectUrl);
+                }
+            });
+
+        http
+            .exceptionHandling()
+
+            // 인증 예외 발생 시 이동할 url 지정정
+/*           .authenticationEntryPoint(new AuthenticationEntryPoint() {
+                @Override
+                public void commence(HttpServletRequest request, HttpServletResponse response,
+                    AuthenticationException authException) throws IOException, ServletException {
+                    response.sendRedirect("/login");
+                }
+            })*/
+            .accessDeniedHandler(new AccessDeniedHandler() {
+                @Override
+                public void handle(HttpServletRequest request, HttpServletResponse response,
+                    AccessDeniedException accessDeniedException) throws IOException, ServletException {
+                    response.sendRedirect("/denied");
+                }
+            })
+        ;
     }
 }
