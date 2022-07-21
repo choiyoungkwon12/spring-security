@@ -284,10 +284,18 @@ ExceptionTranslationFilter가 사용자 요청을 받아서 다음 filter로 넘
   ![img_1.png](image/img_20.png)
 
 
-
-
 ### RequestCacheAwareFilter
 
 RequestCacheAwareFilter는 인증 예외시 원래 가고자 했던 요청 정보를 SavedRequest에 담게 되는데 이 객체가 존재하는지 확인하는 필터이다.
 
 null이 아닌경우 다음 필터 호출 시 이전에 저장된 SavedRequest를 파라미터 값으로 사용함.
+
+# Form 인증 - CSRF, CsrfFilter
+
+![img_1.png](image/img_21.png)
+
+**스프링은 CSRF을 방지하기 위한 Filter인 CsrfFIlter를 제공한다.**
+
+![img_1.png](image/img_22.png)
+
+타임리프와 같은 템플릿 엔진은 자동으로 csrf를 헤더에 넣어줌. 그러나 jsp같은 경우는 직접 만들어서 요청 보내야 함.
