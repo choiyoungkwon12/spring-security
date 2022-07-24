@@ -5,6 +5,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,6 +24,7 @@ import org.springframework.security.web.savedrequest.SavedRequest;
 
 @Configuration
 @EnableWebSecurity
+@Order(0)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
@@ -42,13 +44,21 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+
+        http
+            .antMatcher("/admin/**")
+            .authorizeRequests()
+            .anyRequest().authenticated()
+        .and()
+            .httpBasic();
+
         /**
          * 기본적으로는 USER, ADMIN, SYS는 각각의 권한을 따로 가지고 있을 뿐이지 USER < ADMIN < SYS 와 같이 더 많은 권한을 가지고 있는 것이 아니다.
          *
          * - 그래서 role에 따로 각각 적어줘야함.
          * - 혹은 이후에 학습할 role hierarchy 설정을 해주면 ADMIN은 USER 권한을 가지고 있는 것이 가능해짐.
          */
-        http
+/*        http
             .authorizeRequests()
             .antMatchers("/login").permitAll() // 로그인 페이지는 모든 사용자 접근 가능
             .antMatchers("/user").hasRole("USER")
@@ -73,13 +83,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .exceptionHandling()
 
             // 인증 예외 발생 시 이동할 url 지정정
-/*           .authenticationEntryPoint(new AuthenticationEntryPoint() {
+           .authenticationEntryPoint(new AuthenticationEntryPoint() {
                 @Override
                 public void commence(HttpServletRequest request, HttpServletResponse response,
                     AuthenticationException authException) throws IOException, ServletException {
                     response.sendRedirect("/login");
                 }
-            })*/
+            })
             .accessDeniedHandler(new AccessDeniedHandler() {
                 @Override
                 public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -87,6 +97,20 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     response.sendRedirect("/denied");
                 }
             })
-        ;
+        ;*/
+    }
+}
+
+@Order(1)
+@Configuration
+class SecurityConfig2 extends WebSecurityConfigurerAdapter {
+
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http
+            .authorizeRequests()
+            .anyRequest().permitAll()
+            .and()
+            .formLogin();
     }
 }

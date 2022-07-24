@@ -357,3 +357,26 @@ null이 아닌경우 다음 필터 호출 시 이전에 저장된 SavedRequest�
 
 - DelegatingFilterProxy는 SecurityFilterAutuConfiguration에 의해서 생성되고, FilterChainProxy는 WebSecurityConfiguration에 의해 생성됨.
   - 둘 다 DEFAULT_FILTER_NAME (springSecurityFilterChain)으로 생성.
+- # 필터 초기화와 다중 보안 설정
+
+![img_1.png](image/img_26.png)
+
+**만약 보안과 관련된 설정 클래스가 2가지 이상 있을 때 어떠한 방식과 방법으로 사용할 수 있는가?**
+
+- 설정 클래스(SecurityConfig1, SecurityConfig2)가 있을 때 각각 따로따로 보안 기능이 작동한다.
+- 그리고 설정 클래스별로 RequestMatcher를 설정할 수 있다.
+  - 그러면 해당 경로에 따라서 설정클래스에 해당하는 보안기능이 작도오딘다.
+- 만약 SecurityConfig1과 2를 만들어서 구성을 했으면 초기화 시 어떻게 각각 다르게 만드는가?
+  - SecurityFilterChain이라는 객체안에 Filters안에 SecurityConfig에서 필터를 생성한 것을 담게 된다.
+  - 또, SecurityConfig에서 requestMatcher 정보가 담긴 SecurityFilterChain이라는 객체가 생성이 된다.
+  - 또, 각각의 SecurityFilterChain 객체를 FilterChainProxy라는 객체의 변수(SecurityFilterChains)에서 가지고 있게 된다.
+  - 그러면 결국 FilterChainProxy.에서 SecurityFilterChain이라는 객체들을 가지고 있게 되고, 만약 사용자가 /admin과 같은 url로 요청을 하면 delegatingFilterProxy에서 FilterChainProxy로 요청을 위임하고, 받아서 요청을 처리 할 때 어떤 SecurityFilterChain을 사용할 것인지 판단하게 되는데 그 안에 RequestMatcher에 매칭이 되는 필터를 사용해서 인증 or 인가처리를 하게 된다.
+
+  **요약.**
+
+  ![img_1.png](image/img_27.png)
+
+- 만약 SecurityConfig 와 같은 설정파일들이 여러개라면 @Order라는 어노테이션으로 순서를 지정해줘야한다.
+  - 요청url로 그럼 필터를 선택할 때 해당 order 순서에 맞는 SecurityFilterChain을 먼저 찾게 된다.
+    - 그래서 좀 더 자세한(?) url matcher를 가진 SecurityConfig를 Order를 더 낮게주고(우선순위를 더 높게) 좀 더 넓은 범위의 SecurityConfig를 Order를 더 높게(우선순위를 더 낮게) 줘야 한다.
+    - 그렇지 않으면 더 넓은 범위의 보안 설정클래스에 먼저 걸리기 때문에 자세한 범위의 보안 설정클래스가 실행되지 않는다.
