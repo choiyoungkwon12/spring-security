@@ -299,3 +299,61 @@ null이 아닌경우 다음 필터 호출 시 이전에 저장된 SavedRequest�
 ![img_1.png](image/img_22.png)
 
 타임리프와 같은 템플릿 엔진은 자동으로 csrf를 헤더에 넣어줌. 그러나 jsp같은 경우는 직접 만들어서 요청 보내야 함.
+
+# 스프링 시큐리티 주요 아키텍처
+
+## DelegatingFilterProxy
+
+![img_1.png](image/img_23.png)
+
+필터는 요청이 실제로 서블릿에서 받아서 처리하는데 서블릿에서 받기 전, 응답 후에 필터가 요청에 대한 일련의 작업을 수행 할 수 있다.
+
+필터는 서블릿 스펙에 정의된 기술이기 때문에 서블릿 컨테이너에서 생성 및 실행된다.
+
+그래서 필터는 스프링에서 관리하는 빈을 주입받거나 스프링에서 사용하는 기술을 필터에서 사용못한다.
+
+- 실행되는 위치가 서블릿은 서블릿 컨테이너, 빈은 스프링 컨테이너임.
+
+근데 스프링 시큐리티의 모든 인증, 인가처리는 필터기반으로 하고 있음.
+
+- 하지만 빈 or 스프링에서 사용하는 기술을 필터에서는 사용 못함.
+- 하지만 필터에서도 스프링에서 사용되는 기술을 사용하고자 함.
+- 그래서 스프링 시큐리티에서는 필터기반으로 보안처리를 하는데 필터들은 스프링 기술들을 사용해야함.
+
+그래서 스프링 빈에서 서블릿 필터를 구현한다.
+
+- 그래도 사용자의 요청을 바로 받지는 못함. ( 서블릿 컨테이너에 위치한게 아니기 때문에)
+- 그래서 was의 필터가 사용자의 요청을 받고 DelegatingFilterProxy(서블릿 필터)가 그 요청을 스프링에서 관리하는 필터빈(서블릿을 구현한 필터)에게 위임하는 역할을 한다.!
+
+그럼 스프링 시큐리티는 필터 기반으로 보안 처리를 하면서 스프링의 기술들을 사용 할 수 있고, 서블릿 필터가 요청을 받아서 처리하기 때문에 DelegatingFilterProxy가 그 요청을 받게 되고, DelegatingFilterProxy가 실제로 보안처리를 하지는 않지만, 그 요청을 스프링에서 관리하는 필터빈에게 전달하고 스프링에서 필터 기반의 보안처리를 하게 되는 것이다.
+
+- 요약 : DelegatingFilterProxy가 요청 받아서 서블릿 필터를 구현한 스프링 빈에게 요청처리 위임.
+  - DelegatingFilterProxy는 특정한 이름을 가진 스프링 빈을 찾아 그 빈에게 요청을 위임한다.
+  - springSecurityFilterChain이라는 이름을 가진 빈을 ApplicationContext에서 찾아 요청을 위임.
+
+
+## FilterChainProxy
+
+![img_1.png](image/img_24.png)
+
+- DelegatingFilterProxy는 springSecurityFilterChain을 이름으로 가진 빈을 찾아서 위임하는데 그것이 FilterChainProxy이다.
+- 결국 FilterChainProxy에서 DelegatingFilterProxy으로부터 요청을 위임 받고 실제 보안처리를 함.
+- FilterChainProxy는 스프링 시큐리티 초기화 시 생성되는 필터들을 관리하고 제어
+  - 스프링 시큐리티가 기본적으로 생성하는 필터
+  - 설정 클래스에서 API 추가 시 생성되는 필터
+- 사용자의 요청을 필터 순서대로 호출하여 전달
+- 사용자정의 필터를 생성해서 기존의 전.후로 추가 가능
+  - 필터의 순서를 잘 정의
+- 마지막 필터까지 인증 및 인가 예외가 발생하지 않으면 보안 통과함.
+
+![img_1.png](image/img_25.png)
+
+사용자의 요청부터 DelegatingFilterProxy → FilterChainProxy의 전체적인 흐름.
+
+- DelegatingFilterProxy가 springSecurityFilterChain이라는 이름의 빈을 찾아서 위임한다고 했는데 DelegatingFilterProxy도 필터로 등록 될 때 springSecurityFilterChain라는 이름으로 등록이 된다. 그래서 같은 이름의 빈에게 요청을 위임하는것임. (내부적으로)
+- 그래서 그 이름(springSecurityFilterChain)을 가진 빈이 FilterChainProxy인 것이다.
+- 요청을 위임 받은 FilterChainProxy는 가지고 있는 필터들을 수행하면서 각각의 보안처리를 하게 되고, 모두 성공적으로 수행하고 나면 최조
+- 요청을 위임 받은 FilterChainProxy는 가지고 있는 필터들을 수행하면서 각각의 보안처리를 하게 되고, 모두 성공적으로 수행하고 나면 최종자원(?)인 SpringMVC의 DispatcherServlet에게 요청을 전달한다.
+
+- DelegatingFilterProxy는 SecurityFilterAutuConfiguration에 의해서 생성되고, FilterChainProxy는 WebSecurityConfiguration에 의해 생성됨.
+  - 둘 다 DEFAULT_FILTER_NAME (springSecurityFilterChain)으로 생성.
