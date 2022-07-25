@@ -380,3 +380,35 @@ null이 아닌경우 다음 필터 호출 시 이전에 저장된 SavedRequest�
   - 요청url로 그럼 필터를 선택할 때 해당 order 순서에 맞는 SecurityFilterChain을 먼저 찾게 된다.
     - 그래서 좀 더 자세한(?) url matcher를 가진 SecurityConfig를 Order를 더 낮게주고(우선순위를 더 높게) 좀 더 넓은 범위의 SecurityConfig를 Order를 더 높게(우선순위를 더 낮게) 줘야 한다.
     - 그렇지 않으면 더 넓은 범위의 보안 설정클래스에 먼저 걸리기 때문에 자세한 범위의 보안 설정클래스가 실행되지 않는다.
+
+# 인증 개념 이해 - Authentication
+
+![img_1.png](image/img_28.png)
+
+authentication은 인증 주체를 의미
+
+- 스프링 시큐리티에서는 Authentication객체를 사용자의 인증정보를 저장하는 토큰 개념으로 사용.
+- 인증 시 id와 password를 담고 인증 검증을 위해 전달되어 사용된다.
+- 인증 후 최종 인증 결과(user 객체, 권한정보)를 담고 security Context에 저장되어 전역적으로 참조.
+  - Authentication authentication = securityContextHolder.getContext().getAuthentication()
+
+- 구조
+  - principal : 사용자 아이디 or User 객체 저장
+  - credentials : 사용자 비밀번호
+  - authorities : 인증된 사용자의 권한 목록
+  - details : 인증 부가 정보
+  - Authenticated : 인증 여부
+
+Authentication이 인증 시, 인증이 끝난 후 각각 어떻게 활용이 되는지
+
+![img_1.png](image/img_29.png)
+
+- 사용자는 username과 password를 요청 시 전달.
+- usernamePasswordAuthenticationFilter는 요청에 담겨있는 username과 password를 추출
+- Authentication 객체를 만듬
+  - 속성중 principal에는 username을, Credentials에는 password 정보를 넣는다.
+- AuthenticationManager가 이전에 만든 Authentication을 가지고 인증을 한다.
+  - 인증 실패를 하면 당연히 예외 발생.
+- 인증 성공 시 AuthenticationManager가 새로운 Authentication을 만든다.
+  - 속성 중 Principal을 UserDetails를 담고, Credentials에는 Password를 담고(보안상 비워두기도 함) Authorities는 권한 목록을 담아서 만들다.
+- 인증 성공 후 생성한 Authentication 객체를 ThreadLocal - SecurityContextHolder - SecurityContext 안에 Authentication 객체로 저장한다.
