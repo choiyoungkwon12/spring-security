@@ -412,3 +412,22 @@ Authentication이 인증 시, 인증이 끝난 후 각각 어떻게 활용이 �
 - 인증 성공 시 AuthenticationManager가 새로운 Authentication을 만든다.
   - 속성 중 Principal을 UserDetails를 담고, Credentials에는 Password를 담고(보안상 비워두기도 함) Authorities는 권한 목록을 담아서 만들다.
 - 인증 성공 후 생성한 Authentication 객체를 ThreadLocal - SecurityContextHolder - SecurityContext 안에 Authentication 객체로 저장한다.
+
+# SecurityContextHolder, SecurityContext
+
+![img_1.png](image/img_30.png)
+
+SecurityContext는 인증 객체를 저장하는 보관소.
+
+- ThreadLocal에 저장되어 아무곳에서나 참조가 가능.
+  - Thread 마다 고유하게 할당된 저장소가 ThreadLocal이다.
+- 인증이 완료되면 HttpSession에 저장되어 어플리케이션 전반에 걸쳐 전역적인 참조가 가능.
+
+SecurityContextHolder
+
+- SecurityContext 객체 저장 방식
+  - MODE에 따라서 어느 범위까지 SecurityContext를 저장해서 사용할 것인지 설정 가능.
+  - default는 MODE_THREADLOCAL로 스레드 당 SecurityContext객체를 할당.
+- SecurityContextHolder.clearContext() : SecurityContext 기본 정보 초기화
+
+![img_1.png](image/img_31.png)
