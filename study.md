@@ -470,3 +470,18 @@ SecurityContextPersistenceFilter는 SecurityContext 객체의 생성, 저장, �
 ### 구조
 
 ![img_1.png](image/img_34.png)
+
+# Authentication Flow(인증의 흐름)
+
+![img_1.png](image/img_35.png)
+
+1. 사용자가 form 로그인으로 인증 요청을 보내면 UsernamePasswordAuthenticationFilter에서 받은 후 입력받은 id,password를 가지고 AuthenticationToken을 생성해서 AuthenticationManager를 호출한다.
+2. AuthenticationManager는 인증처리하는 객체는 아니고 인증의 전반적인 관리를 하는데 인증을 처리하는 AuthenticationProvider 목록들을 가지고 있는데 적절한 AuthenticationProvider에게 인증을 하도록 위임한다.
+3. 인증을 위해 AuthenticationProvider가 호출되면 Authentication(사용자가 입력한 Id,Pwd)에서 username을 통해 userDetails 객체를 얻기위해 UserDetailsService의 loadByUsername을 호출한다.
+4. UserDetailsService에서는 파라미터로 받은 UserName을 통해 유저 객체를 조회한 후 UserDetails타입으로 반환한다.
+  1. 만약 유저를 찾지 못하면 예외가 발생.
+5. 다시 AuthenticationProvider는 UserDetails객체를 받아서 사용자가 입력한 password와 username으로 조회한 UserDetails에 있는 Password와 같은지 확인한다.
+  1. 만약 다를 경우 BadCredentialException 발생.
+6. 인증에  성공하면 Authentication 객체를 만들어서 UserDetails와 authorities(해당 유저가 가진 권한 목록)담아 리턴
+7. AuthenticationManager도 그대로 받아서 리턴
+8. UsernamePasswordAuthenticationFilter에서 SecurityContext안에 Authentication 객체를 넣게 됨.
