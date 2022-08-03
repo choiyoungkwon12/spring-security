@@ -431,3 +431,42 @@ SecurityContextHolder
 - SecurityContextHolder.clearContext() : SecurityContext 기본 정보 초기화
 
 ![img_1.png](image/img_31.png)
+
+# SecurityContextPersistenceFilter
+
+![img_1.png](image/img_32.png)
+
+SecurityContextPersistenceFilter는 SecurityContext 객체의 생성, 저장, 조회를 하는 일을 함.
+
+- 익명사용자, 인증 시, 인증 후, 최종 응답 후 공통적으로 하는일이 각각 있음.
+
+- 익명 사용자의 경우 새로운 securityContext 객체를 생성해서 SecurityContextHolder에 저장.
+
+인증 시
+
+- 익명사용자처럼 새로운 securityContext 객체를 생성해서 SecurityContextHolder에 저장.
+- 그리고 form 인증 시  UsernamePasswordAuthenticationFilter에서 인증하고 성공하면 SecurityContext에 UsernamePasswordAuthentication객체를 SecurityContext에 저장
+- 인증이 최종 완료되면 SecurityContextPersistenceFilter는 Session에 SecurityContext를 저장.
+
+인증 후
+
+- Session에서 SecurityContext 를 꺼내서 SecurityContextHolder에 저장하고 인증 시 SecurityContext안에 있는 Authentication 객체가 존재하기 때문에 계속 인증을 유지할 수 있다.
+
+최종 응답 시에는 공통적으로 SecurityContextHolder에서 SecurityContext를 clear하는데 이는 매 요청마다 SecurityContext를 SecurityContextHolder에 만들거나 기존에 존재하는 것을 저장하게 되기 때문임.
+
+![img_1.png](image/img_33.png)
+
+- SecurityContextPersistenceFilter는 내부적으로 HttpSecurityContextRepository를 가지고 있음.
+  - HttpSecurityContextRepository는 실제 SecurityContext를 생성하거나 Session에서 조회해서 SecurityContextHolder에 넣어주는 일을 함.
+- 인증 전이라면 SecurityContext를 생성 후 chain.dofilter를 통해 인증을 하는 filter에게 체이닝함.
+- form인증의 경우 usernamePasswordFilter에서 인증을 하고 AuthenticationToken을 SecurityContext에 저장하게 됨.
+- 이후 필터 체이닝을 거치다가 최종적으로 클라이언트한테 응답할때 SecurityContextPersistenceFilter가 Session에 SecurityContext를 저장.
+- 그 후 최종 응답 시 SecurityContextHolder.clearContext()를 통해 SecurityContext를 삭제함.
+
+요약 : SecurityContextPersistenceFilter는 인증시에는 SecurityContext를 생성하고 SecurityContextHolder에 넣어주기만 하고 다음 인증 필터로 넘긴다. 그리고 응답 전에 Session에 SecurityContext를 저장한다.
+
+인증시에는 세션에서 SecurityContext를 꺼내서 SecurityContextHolder에 넣고 다음 필터로 체이닝.
+
+### 구조
+
+![img_1.png](image/img_34.png)
