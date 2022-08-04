@@ -498,3 +498,17 @@ AuthenticationManager는 인증처리를 할 AuthenticationProvider를 찾는 �
 만약 해당 ProviderManager가 처리할 AuthenticationProvider 가 없다면 parent(AuthenticationManager타입의 ProviderManager)속성에 가지고 있는 ProviderManager를 탐색하여 인증처리를 할 AuthenticationProvider를 찾는다.
 
 먼저 생성한것이 parent 속성으로 들어가게 됨….
+
+# AuthenticationProvider
+
+![img_1.png](image/img_37.png)
+
+AuthenticationProvider는 인증처리를 하는 실질적인 객체이다.
+
+AuthenticationManager에게 authenticate 메서드가 호출이 되면 사용자의 id로 조회를 해서 userDetails객체에 맞는 사용자를 가져온다. (없으면 userNotFoundException)
+
+그리고 사용자가 입력한 비밀번호와 userDetails에 담겨있는 비밀번호를 비교하고 만약 일치하지 않으면 BadCredentialException 발생
+
+이후 추가 검증할 것이 있다면 추가 검증을 하고 Authentication객체에 user(UserDetails)와 authorities(권한목록)을 담아 다시 AuthenticationManager에게 반환한다.
+
+supports(authentication)은 해당 AuthenticationProvider에서 실제 인증 처리를 할 수 있는지 검증하는 메서드
