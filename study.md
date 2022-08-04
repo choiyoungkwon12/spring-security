@@ -485,3 +485,16 @@ SecurityContextPersistenceFilter는 SecurityContext 객체의 생성, 저장, �
 6. 인증에  성공하면 Authentication 객체를 만들어서 UserDetails와 authorities(해당 유저가 가진 권한 목록)담아 리턴
 7. AuthenticationManager도 그대로 받아서 리턴
 8. UsernamePasswordAuthenticationFilter에서 SecurityContext안에 Authentication 객체를 넣게 됨.
+
+
+# AuthenticationManager
+
+![img_1.png](image/img_36.png)
+
+AuthenticationManager는 인증처리를 할 AuthenticationProvider를 찾는 역할을 한다.
+
+사용자의 인증 요청(폼인증, 리멤버 미 인증, Oauth 인증 등)이 들어오면 ProviderManager가 받아서 각 인증에 맞는 실제 인증처리를 할 AuthenticationProvider를 찾는다.
+
+만약 해당 ProviderManager가 처리할 AuthenticationProvider 가 없다면 parent(AuthenticationManager타입의 ProviderManager)속성에 가지고 있는 ProviderManager를 탐색하여 인증처리를 할 AuthenticationProvider를 찾는다.
+
+먼저 생성한것이 parent 속성으로 들어가게 됨….
