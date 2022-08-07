@@ -512,3 +512,30 @@ AuthenticationManager에게 authenticate 메서드가 호출이 되면 사용자
 이후 추가 검증할 것이 있다면 추가 검증을 하고 Authentication객체에 user(UserDetails)와 authorities(권한목록)을 담아 다시 AuthenticationManager에게 반환한다.
 
 supports(authentication)은 해당 AuthenticationProvider에서 실제 인증 처리를 할 수 있는지 검증하는 메서드
+
+
+# Authorization & FilterSecurityInterceptor
+
+![img_1.png](image/img_38.png)
+
+Authorization은 인가처리에 대한 내용임.
+
+- 인증을 받은 유저가 무엇이 허가 되었는지 증명하는 것
+- Spring 시큐리티는 Authentication과 Authorization으로 인증과 인가 두가지로 나누어져 있음.
+
+### FilterSecurityInterceptor
+
+![img_1.png](image/img_39.png)
+
+FilterSecurityInterceptor는 맨 마지막에 있는 필터로 인증된 사용자에 대해서 요청의 승인/거부 여부를 최종 결정.
+
+인증안하고 접근 시도시 AuthenticationException, 인증 후 자원 접근 시도 시 권한 없을 경우 AccessDeniedException 발생.
+
+권한 처리는 AccessDecisionManager에게 맡기는데 실제로는 AccessDecisionVoter에 의해서 권한 처리 판단을 하게 됨.
+
+![img_1.png](image/img_40.png)
+
+- FilterSecurityInterceptor가 사용자 요청을 받아서 인증 여부 체크 → 인증 객체 null 이면 AuthenticationException 발생하고 ExceptionTranslationFilter가 처리함 (ex. 로그인페이지로 이동)
+- 인증객체 존재하면 SecurityMetadataSource를 통해서 사용자가 요청한 자원에 접근할 때 필요한 권한 정보 조회해서 전달 후 필요한 권한정보가 없으면 심사하지 않고 자원 접근 허용을 한다.
+- 필요한 권한정보가 있다면 AccessDecisionmanager가 AccessDecisionVoter에게 권한이 있는지 심의 요청을 하고 AccessDecisionVoter가 심의 후 승인/거부 판단을 한다.
+- 접근 승인에 실패하면 AccessdeniedException 발생하고 성공 시 자원 접근에 허용하게 된다.
