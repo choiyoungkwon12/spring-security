@@ -539,3 +539,53 @@ FilterSecurityInterceptor는 맨 마지막에 있는 필터로 인증된 사용�
 - 인증객체 존재하면 SecurityMetadataSource를 통해서 사용자가 요청한 자원에 접근할 때 필요한 권한 정보 조회해서 전달 후 필요한 권한정보가 없으면 심사하지 않고 자원 접근 허용을 한다.
 - 필요한 권한정보가 있다면 AccessDecisionmanager가 AccessDecisionVoter에게 권한이 있는지 심의 요청을 하고 AccessDecisionVoter가 심의 후 승인/거부 판단을 한다.
 - 접근 승인에 실패하면 AccessdeniedException 발생하고 성공 시 자원 접근에 허용하게 된다.
+
+# AccessDecisionManager, AccessDecisionVoter
+
+![img_1.png](image/img_41.png)
+
+- AccessDesicionManager는 사용자의 자원 접근을 허용할지, 거부할지 최종 결정한다.
+- 여러 개의 voter를 가지고 각 voter로부터 접근허용, 거부, 보류에 해당하는 값을 리턴 받고 판단해서 결정한다.
+- 최종 접근 거부 시 예외발생 (AccessDeniedException)
+
+AccessDesicionManger 인터페이스로 구현체에 따라 접근 결정하는 유형이 나누어진다.
+
+- AffirmativeBased:
+  - 여러 Voter중 하나라도 접근 허가 시 최종 접근 허가
+- ConsensusBased:
+  - 다수표에 의해 최종 결정을 한다.
+  - 동수일 경우, 기본 접근은 허가이나, allowIfEqualGrantedDeniedDecisions을 false로 설정할 경우 접근 거부로 변경됨,.
+- UnanimousBased:
+  - 모든 voter가 만장일치로 접근을 승인해야 최종승인 하며 그렇지 않은 경우 접근을 경우(하나라도 거부 시 최종거부)
+
+  ![img_1.png](image/img_42.png)
+
+  - voter가 인증정보, 요청정보, 권한정보를 받아서 접근을 허용할지, 거부할지, 보류할지 판단하게 된다.
+  - 결정 방식으로
+    - ACCESS_GRANTED : 접근 허용(1)
+    - ACCESS_DENIED : 접근 거부 (-1) (사진이 잘못됨 -1이 맞음)
+    - ACCESS_ ABSTAIN : 접근 보류(0)
+      - Voter가 해당 타입의 요청에 대해 결정을 내릴 수 없는 경우
+
+  ### 흐름
+
+  ![img_1.png](image/img_43.png)
+
+  FilterSecurityInterceptor가 인가처리를 AccessDesicionManager에게 맡김.
+
+  - 이때 인증정보, 요청정보, 권한정보에 대한 것을 넘겨줌
+
+  다시 AccessDecisionManager에서 Voter들에게 판단을 맡김
+
+  - 이때 인증정보, 요청정보, 권한정보에 대한 것을 넘겨줌
+  - 각 voter는 Access_Granted, Access_Denied, Access_Abstain 중 하나를 반환
+
+  AccessDecisionManager는 구현체에 맞게 허용/거부를 판단하고
+
+  - 허용 시 Access_Granted를 FilterSecurityInterceptor에 리턴
+  - 거부 시 Access_Denied를 ExceptionTranslationFilter 호출
+
+# 스프링 시큐리티 아키텍처 정리
+
+![img_1.png](image/img_44.png)
+
