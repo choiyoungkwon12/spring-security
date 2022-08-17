@@ -593,3 +593,6 @@ AccessDesicionManger 인터페이스로 구현체에 따라 접근 결정하는 
 ---
 
 # 실습
+
+# PasswordEncoder
+![img_1.png](image/img_45.png)
