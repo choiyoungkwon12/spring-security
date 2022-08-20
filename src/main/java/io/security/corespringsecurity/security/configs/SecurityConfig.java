@@ -1,14 +1,17 @@
 package io.security.corespringsecurity.security.configs;
 
+import javax.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
 
 @Configuration
 @EnableWebSecurity
@@ -16,9 +19,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource;
 
-    public SecurityConfig(AuthenticationProvider authenticationProvider) {
+    public SecurityConfig(AuthenticationProvider authenticationProvider,
+        AuthenticationDetailsSource<HttpServletRequest, WebAuthenticationDetails> authenticationDetailsSource) {
         this.authenticationProvider = authenticationProvider;
+        this.authenticationDetailsSource = authenticationDetailsSource;
     }
 
     @Override
@@ -41,6 +47,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         .formLogin()
             .loginPage("/login")
             .loginProcessingUrl("/login_proc")
+            .authenticationDetailsSource(authenticationDetailsSource)
             .defaultSuccessUrl("/")
             .permitAll();
     }
