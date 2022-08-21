@@ -596,3 +596,11 @@ AccessDesicionManger 인터페이스로 구현체에 따라 접근 결정하는 
 
 # PasswordEncoder
 ![img_1.png](image/img_45.png)
+
+# Form 인증 - WebAuthenticationDetails, AuthenticationDetailsSource
+
+![img_1.png](image/img_46.png)
+
+- 유저가 인증 시도를 하면 해당 필터가 Authentication 객체를 만들고 setDetails라는 메서드를 통해서 id,pwd 말고도 다른 전달된 데이터를 Authentication의 details라는 객체안에 가지고 있게 된다.
+- details는 object 타입이고 실제로는 WebAuthenticationDetails로 데이터를 가지고 있는데 기본적으로는 sessionId와 remoteAddress를 가지고 있고 커스텀해서 더 많은 데이터를 저장할 수 있다.
+- WebAuthenticationDetails 객체를 만드는 것이 AuthenticationDetailsSource가 된다.
