@@ -38,7 +38,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         }
 
         @Override
-        protected void configure ( final HttpSecurity http) throws Exception {
+        protected void configure (final HttpSecurity http) throws Exception {
             http
                 .authorizeRequests()
                 .antMatchers("/", "/users").permitAll()
@@ -53,8 +53,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginPage("/login")
                 .loginProcessingUrl("/login_proc")
                 .authenticationDetailsSource(authenticationDetailsSource)
-                .defaultSuccessUrl("/")
                 .successHandler(customAuthenticationSuccessHandler)
+                .defaultSuccessUrl("/")
                 .permitAll();
         }
 
