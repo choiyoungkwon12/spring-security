@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -16,9 +17,12 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final AuthenticationProvider authenticationProvider;
+    private final AuthenticationSuccessHandler customAuthenticationSuccessHandler;
 
-    public SecurityConfig(AuthenticationProvider authenticationProvider) {
+    public SecurityConfig(AuthenticationProvider authenticationProvider,
+        AuthenticationSuccessHandler customAuthenticationSuccessHandler) {
         this.authenticationProvider = authenticationProvider;
+        this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
     }
 
     @Override
@@ -42,6 +46,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
             .loginPage("/login")
             .loginProcessingUrl("/login_proc")
             .defaultSuccessUrl("/")
+            .successHandler(customAuthenticationSuccessHandler)
             .permitAll();
     }
 
