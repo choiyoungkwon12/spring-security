@@ -609,3 +609,10 @@ AccessDesicionManger 인터페이스로 구현체에 따라 접근 결정하는 
 # Ajax 인증 프로세스 요약
 
 ![img_1.png](image/img_47.png)
+
+# Ajax 인증 -AjaxAuthenticationFilter  
+
+![img_1.png](image/img_48.png)
+- AbstractAuthenticationProcessingFilter는 추상클래스로 상속 받아서 사용
+- usernamepasswordFilter도 해당 필터 상속받음
+ 
