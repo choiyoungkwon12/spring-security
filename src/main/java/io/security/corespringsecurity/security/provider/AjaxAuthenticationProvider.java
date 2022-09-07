@@ -1,29 +1,32 @@
 package io.security.corespringsecurity.security.provider;
 
-import io.security.corespringsecurity.security.common.FormWebAuthenticationDetails;
-import lombok.RequiredArgsConstructor;
+import io.security.corespringsecurity.security.token.AjaxAuthenticationToken;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-@Component
-@RequiredArgsConstructor
-@Qualifier("customAuthenticationProvider")
-public class CustomAuthenticationProvider implements AuthenticationProvider {
+@Qualifier("ajaxAuthenticationProvider")
+public class AjaxAuthenticationProvider implements AuthenticationProvider {
+
 
     private final UserDetailsService userDetailsService;
 
     private final PasswordEncoder passwordEncoder;
 
+    public AjaxAuthenticationProvider(UserDetailsService userDetailsService,
+        PasswordEncoder passwordEncoder) {
+        this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
+    }
+
     @Override
+    @Transactional
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
         String username = authentication.getName();
         String password = (String) authentication.getCredentials();
@@ -34,18 +37,11 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException("BadCredentialsException !");
         }
 
-        FormWebAuthenticationDetails authenticationDetails = (FormWebAuthenticationDetails) authentication.getDetails();
-        String secretKey = authenticationDetails.getSecretKey();
-        if (secretKey == null || !"secret".equals(secretKey)){
-            throw new InsufficientAuthenticationException("InsufficientAuthenticationException secretKey");
-        }
-
-        return new UsernamePasswordAuthenticationToken(
-            username, null, userDetails.getAuthorities());
+        return new AjaxAuthenticationToken(username, null, userDetails.getAuthorities());
     }
 
     @Override
     public boolean supports(Class<?> authentication) {
-        return UsernamePasswordAuthenticationToken.class.isAssignableFrom(authentication);
+        return authentication.equals(AjaxAuthenticationToken.class);
     }
 }
